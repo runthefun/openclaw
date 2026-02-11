@@ -4,7 +4,7 @@ services:
       context: .
       target: dev
     environment:
-      HOME: /home/node
+      HOME: /root
       TERM: xterm-256color
       NODE_ENV: development
       OPENCLAW_FORCE_BUILD: "1"
@@ -13,39 +13,24 @@ services:
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
     volumes:
-      # Mount source code and project files (read-only where possible)
-      - ./src:/app/src
-      - ./extensions:/app/extensions
-      - ./skills:/app/skills
-      - ./ui:/app/ui
-      - ./scripts:/app/scripts
-      - ./assets:/app/assets
-      - ./openclaw.mjs:/app/openclaw.mjs
-      - ./tsdown.config.ts:/app/tsdown.config.ts
-      - ./tsconfig.json:/app/tsconfig.json
-      # Persist dist so incremental rebuilds survive restarts
-      - openclaw-dev-dist:/app/dist
+      # Mount entire project directory
+      - .:/app
+      # Prevent host node_modules from shadowing container deps
+      - /app/node_modules
+      - /app/ui/node_modules
       # Config / workspace
       - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
-      # Prevent host node_modules from shadowing container deps
-      - /app/node_modules
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
+    stdin_open: true
+    tty: true
     init: true
     restart: unless-stopped
     command:
-      [
-        "node",
-        "scripts/run-node.mjs",
-        "gateway",
-        "--allow-unconfigured",
-        "--bind",
-        "${OPENCLAW_GATEWAY_BIND:-lan}",
-        "--port",
-        "18789",
-      ]
-
-volumes:
-  openclaw-dev-dist:
+      - sh
+      - -c
+      - |
+        cd /app/ui && pnpm exec vite build --watch &
+        node scripts/run-node.mjs gateway --allow-unconfigured --bind "$${OPENCLAW_GATEWAY_BIND:-lan}" --port 18789

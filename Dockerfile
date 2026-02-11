@@ -26,6 +26,7 @@ RUN pnpm install --frozen-lockfile
 # ---------- Dev stage: deps only, source mounted at runtime ----------
 FROM base AS dev
 ENV NODE_ENV=development
+ENV OPENCLAW_PREFER_PNPM=1
 # Source code will be bind-mounted from the host.
 # The run-node.mjs script auto-rebuilds when source is stale.
 CMD ["node", "scripts/run-node.mjs", "gateway", "--allow-unconfigured", "--bind", "lan"]
