@@ -189,13 +189,15 @@ export function resolveGatewayAuth(params: {
 }): ResolvedGatewayAuth {
   const authConfig = params.authConfig ?? {};
   const env = params.env ?? process.env;
-  const token =
+  const tokenRaw =
     authConfig.token ?? env.OPENCLAW_GATEWAY_TOKEN ?? env.CLAWDBOT_GATEWAY_TOKEN ?? undefined;
-  const password =
+  const passwordRaw =
     authConfig.password ??
     env.OPENCLAW_GATEWAY_PASSWORD ??
     env.CLAWDBOT_GATEWAY_PASSWORD ??
     undefined;
+  const token = tokenRaw?.trim() || undefined;
+  const password = passwordRaw?.trim() || undefined;
   const mode: ResolvedGatewayAuth["mode"] = authConfig.mode ?? (password ? "password" : "token");
   const allowTailscale =
     authConfig.allowTailscale ?? (params.tailscaleMode === "serve" && mode !== "password");

@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(bash scripts/committer:*)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(grep:*)",
+      "Bash(pnpm vitest run:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm install:*)",
+      "Bash(/Users/getspooky/Documents/opensource/openclaw/node_modules/.bin/vitest run:*)",
+      "Bash(echo:*)",
+      "Bash(pnpm build:*)"
     ]
   }
 }
