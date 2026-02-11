@@ -1,4 +1,4 @@
-FROM node:22-bookworm
+FROM node:22-bookworm AS base
 
 # Install Bun (required for build scripts)
 RUN curl -fsSL https://bun.sh/install | bash
@@ -23,6 +23,15 @@ COPY scripts ./scripts
 
 RUN pnpm install --frozen-lockfile
 
+# ---------- Dev stage: deps only, source mounted at runtime ----------
+FROM base AS dev
+ENV NODE_ENV=development
+# Source code will be bind-mounted from the host.
+# The run-node.mjs script auto-rebuilds when source is stale.
+CMD ["node", "scripts/run-node.mjs", "gateway", "--allow-unconfigured", "--bind", "lan"]
+
+# ---------- Production stage ----------
+FROM base AS production
 COPY . .
 RUN pnpm build
 # Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
