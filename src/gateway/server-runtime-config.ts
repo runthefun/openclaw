@@ -77,10 +77,13 @@ export async function resolveGatewayRuntimeConfig(params: {
   });
   const authMode: ResolvedGatewayAuth["mode"] = resolvedAuth.mode;
   const hasToken = typeof resolvedAuth.token === "string" && resolvedAuth.token.trim().length > 0;
+  const hasJwtPublicKey =
+    typeof resolvedAuth.jwtPublicKey === "string" && resolvedAuth.jwtPublicKey.trim().length > 0;
   const hasPassword =
     typeof resolvedAuth.password === "string" && resolvedAuth.password.trim().length > 0;
   const hasSharedSecret =
-    (authMode === "token" && hasToken) || (authMode === "password" && hasPassword);
+    (authMode === "token" && (hasToken || hasJwtPublicKey)) ||
+    (authMode === "password" && hasPassword);
   const hooksConfig = resolveHooksConfig(params.cfg);
   const canvasHostEnabled =
     process.env.OPENCLAW_SKIP_CANVAS_HOST !== "1" && params.cfg.canvasHost?.enabled !== false;
@@ -96,7 +99,7 @@ export async function resolveGatewayRuntimeConfig(params: {
   }
   if (!isLoopbackHost(bindHost) && !hasSharedSecret) {
     throw new Error(
-      `refusing to bind gateway to ${bindHost}:${params.port} without auth (set gateway.auth.token/password, or set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD)`,
+      `refusing to bind gateway to ${bindHost}:${params.port} without auth (set gateway.auth.token/password, set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD, or set OPENCLAW_GATEWAY_JWT_PUBLIC_KEY)`,
     );
   }
 

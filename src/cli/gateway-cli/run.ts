@@ -204,10 +204,14 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   const resolvedAuthMode = resolvedAuth.mode;
   const tokenValue = resolvedAuth.token;
   const passwordValue = resolvedAuth.password;
+  const jwtPublicKeyValue = resolvedAuth.jwtPublicKey;
   const hasToken = typeof tokenValue === "string" && tokenValue.trim().length > 0;
   const hasPassword = typeof passwordValue === "string" && passwordValue.trim().length > 0;
+  const hasJwtPublicKey =
+    typeof jwtPublicKeyValue === "string" && jwtPublicKeyValue.trim().length > 0;
   const hasSharedSecret =
-    (resolvedAuthMode === "token" && hasToken) || (resolvedAuthMode === "password" && hasPassword);
+    (resolvedAuthMode === "token" && (hasToken || hasJwtPublicKey)) ||
+    (resolvedAuthMode === "password" && hasPassword);
   const authHints: string[] = [];
   if (miskeys.hasGatewayToken) {
     authHints.push('Found "gateway.token" in config. Use "gateway.auth.token" instead.');
@@ -217,11 +221,16 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
       '"gateway.remote.token" is for remote CLI calls; it does not enable local gateway auth.',
     );
   }
-  if (resolvedAuthMode === "token" && !hasToken && !resolvedAuth.allowTailscale) {
+  if (
+    resolvedAuthMode === "token" &&
+    !hasToken &&
+    !hasJwtPublicKey &&
+    !resolvedAuth.allowTailscale
+  ) {
     defaultRuntime.error(
       [
-        "Gateway auth is set to token, but no token is configured.",
-        "Set gateway.auth.token (or OPENCLAW_GATEWAY_TOKEN), or pass --token.",
+        "Gateway auth is set to token, but no token or JWT public key is configured.",
+        "Set gateway.auth.token (or OPENCLAW_GATEWAY_TOKEN), set OPENCLAW_GATEWAY_JWT_PUBLIC_KEY, or pass --token.",
         ...authHints,
       ]
         .filter(Boolean)
@@ -247,7 +256,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     defaultRuntime.error(
       [
         `Refusing to bind gateway to ${bind} without auth.`,
-        "Set gateway.auth.token/password (or OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD) or pass --token/--password.",
+        "Set gateway.auth.token/password (or OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD), set OPENCLAW_GATEWAY_JWT_PUBLIC_KEY, or pass --token/--password.",
         ...authHints,
       ]
         .filter(Boolean)
