@@ -11,6 +11,11 @@ const {
   resolveGrokModel,
   resolveGrokInlineCitations,
   extractGrokContent,
+  resolveExaApiKey,
+  resolveExaNumResults,
+  resolveExaSearchType,
+  resolveExaUseAutoprompt,
+  resolveExaCategory,
 } = __testing;
 
 describe("web_search perplexity baseUrl defaults", () => {
@@ -161,5 +166,63 @@ describe("web_search grok response parsing", () => {
     expect(extractGrokContent({ output_text: "hello from output_text" })).toBe(
       "hello from output_text",
     );
+  });
+});
+
+describe("web_search exa config resolution", () => {
+  it("uses config apiKey when provided", () => {
+    expect(resolveExaApiKey({ apiKey: "exa-test-key" })).toBe("exa-test-key");
+  });
+
+  it("returns undefined when no apiKey is available", () => {
+    const previous = process.env.EXA_API_KEY;
+    try {
+      delete process.env.EXA_API_KEY;
+      expect(resolveExaApiKey({})).toBeUndefined();
+      expect(resolveExaApiKey(undefined)).toBeUndefined();
+    } finally {
+      if (previous === undefined) {
+        delete process.env.EXA_API_KEY;
+      } else {
+        process.env.EXA_API_KEY = previous;
+      }
+    }
+  });
+
+  it("uses default numResults when not specified", () => {
+    expect(resolveExaNumResults({})).toBe(5);
+    expect(resolveExaNumResults(undefined)).toBe(5);
+  });
+
+  it("uses config numResults when provided", () => {
+    expect(resolveExaNumResults({ numResults: 10 })).toBe(10);
+  });
+
+  it("uses default search type when not specified", () => {
+    expect(resolveExaSearchType({})).toBe("auto");
+    expect(resolveExaSearchType(undefined)).toBe("auto");
+  });
+
+  it("uses config search type when provided", () => {
+    expect(resolveExaSearchType({ type: "neural" })).toBe("neural");
+  });
+
+  it("defaults useAutoprompt to false", () => {
+    expect(resolveExaUseAutoprompt({})).toBe(false);
+    expect(resolveExaUseAutoprompt(undefined)).toBe(false);
+  });
+
+  it("respects useAutoprompt config", () => {
+    expect(resolveExaUseAutoprompt({ useAutoprompt: true })).toBe(true);
+    expect(resolveExaUseAutoprompt({ useAutoprompt: false })).toBe(false);
+  });
+
+  it("returns undefined category when not specified", () => {
+    expect(resolveExaCategory({})).toBeUndefined();
+    expect(resolveExaCategory(undefined)).toBeUndefined();
+  });
+
+  it("uses config category when provided", () => {
+    expect(resolveExaCategory({ category: "news" })).toBe("news");
   });
 });

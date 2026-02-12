@@ -21,4 +21,26 @@ describe("web search provider config", () => {
 
     expect(res.ok).toBe(true);
   });
+
+  it("accepts exa provider and config", () => {
+    const res = validateConfigObject({
+      tools: {
+        web: {
+          search: {
+            enabled: true,
+            provider: "exa",
+            exa: {
+              apiKey: "test-key",
+              numResults: 10,
+              type: "neural",
+              useAutoprompt: true,
+              category: "news",
+            },
+          },
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
 });

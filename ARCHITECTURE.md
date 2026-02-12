@@ -41,6 +41,7 @@ Agents are defined in `agents.list` in the config. If none are configured, a sin
 A **session** is a conversation thread identified by a **session key** — a colon-delimited string encoding agent, channel, and peer information.
 
 Session key formats:
+
 - `agent:main:main` — the default/main session
 - `agent:main:telegram:dm:12345` — a per-peer DM session
 - `agent:main:discord:group:789` — a group chat session
@@ -58,12 +59,14 @@ What determines the session key for incoming messages:
 4. **Web UI and CLI** send `sessionKey: "main"` which resolves to `agent:<id>:main`
 
 Each session persists:
+
 - A JSONL transcript file (`~/.openclaw/agents/<id>/sessions/*.jsonl`)
 - Metadata in a session store (model preferences, thinking level, token usage, compaction count)
 
 ### Channels
 
 Channels are **I/O adapters** for messaging platforms. They translate between platform-specific message formats and OpenClaw's internal `MsgContext` format. A channel handles:
+
 - Inbound message parsing (webhook/polling/socket)
 - Outbound reply delivery (API calls to the platform)
 - Media upload/download
@@ -123,6 +126,7 @@ The loop:
 ```
 
 **Error recovery** wraps the loop with retries:
+
 - Auth failure → rotate API key/profile
 - Rate limit → cooldown + try next profile
 - Context overflow → auto-compact conversation, then truncate tool results
@@ -165,6 +169,7 @@ Daily memory files (`memory/*.md`) and optionally session transcripts are indexe
 - **Sync triggers**: file changes (chokidar), session transcript growth, on-demand when search finds a dirty index
 
 **Memory creation**:
+
 - **Session-memory hook**: on `/new` command, saves recent conversation to `memory/YYYY-MM-DD-<slug>.md`
 - **Memory flush**: before context compaction, the agent is prompted to write durable facts to daily files
 - **Agent writes**: the agent can write to `MEMORY.md` or `memory/*.md` at any time using file tools
@@ -188,16 +193,16 @@ Daily memory files (`memory/*.md`) and optionally session transcripts are indexe
 
 On each agent run, workspace files are loaded and injected into the system prompt:
 
-| File | Purpose | Subagent sessions |
-|------|---------|-------------------|
-| `AGENTS.md` | Agent instructions/guidelines | Included |
-| `TOOLS.md` | Tool usage guidance | Included |
-| `SOUL.md` | Persona and tone | Excluded |
-| `IDENTITY.md` | Agent identity | Excluded |
-| `USER.md` | User context | Excluded |
-| `HEARTBEAT.md` | Heartbeat behavior | Excluded |
-| `BOOTSTRAP.md` | Onboarding notes | Excluded |
-| `MEMORY.md` | Persistent memory | Excluded |
+| File           | Purpose                       | Subagent sessions |
+| -------------- | ----------------------------- | ----------------- |
+| `AGENTS.md`    | Agent instructions/guidelines | Included          |
+| `TOOLS.md`     | Tool usage guidance           | Included          |
+| `SOUL.md`      | Persona and tone              | Excluded          |
+| `IDENTITY.md`  | Agent identity                | Excluded          |
+| `USER.md`      | User context                  | Excluded          |
+| `HEARTBEAT.md` | Heartbeat behavior            | Excluded          |
+| `BOOTSTRAP.md` | Onboarding notes              | Excluded          |
+| `MEMORY.md`    | Persistent memory             | Excluded          |
 
 Subagent sessions (spawned child tasks) only receive `AGENTS.md` and `TOOLS.md` to keep their prompts lean. All other session types (main, per-peer DM, group, channel, cron) receive the full set.
 

@@ -336,8 +336,8 @@ export type ToolsConfig = {
     search?: {
       /** Enable web search tool (default: true when API key is present). */
       enabled?: boolean;
-      /** Search provider ("brave", "perplexity", or "grok"). */
-      provider?: "brave" | "perplexity" | "grok";
+      /** Search provider ("brave", "perplexity", "grok", or "exa"). */
+      provider?: "brave" | "perplexity" | "grok" | "exa";
       /** Brave Search API key (optional; defaults to BRAVE_API_KEY env var). */
       apiKey?: string;
       /** Default search results count (1-10). */
@@ -363,6 +363,19 @@ export type ToolsConfig = {
         model?: string;
         /** Include inline citations in response text as markdown links (default: false). */
         inlineCitations?: boolean;
+      };
+      /** Exa-specific configuration (used when provider="exa"). */
+      exa?: {
+        /** API key for Exa (defaults to EXA_API_KEY env var). */
+        apiKey?: string;
+        /** Number of results to return (default: 5). */
+        numResults?: number;
+        /** Search type: "auto", "neural", or "keyword" (default: "auto"). */
+        type?: string;
+        /** Let Exa rephrase the query for better results (default: false). */
+        useAutoprompt?: boolean;
+        /** Content category filter (e.g., "company", "research paper", "news", "tweet", "github", "personal site"). */
+        category?: string;
       };
     };
     fetch?: {

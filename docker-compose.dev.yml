@@ -4,7 +4,7 @@ services:
       context: .
       target: dev
     environment:
-      HOME: /root
+      HOME: /home/node
       TERM: xterm-256color
       NODE_ENV: development
       OPENCLAW_FORCE_BUILD: "1"

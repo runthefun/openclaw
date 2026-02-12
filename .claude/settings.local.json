@@ -10,7 +10,13 @@
       "Bash(pnpm install:*)",
       "Bash(/Users/getspooky/Documents/opensource/openclaw/node_modules/.bin/vitest run:*)",
       "Bash(echo:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(pnpm tsc:*)",
+      "WebFetch(domain:docs.exa.ai)",
+      "WebFetch(domain:exa.ai)",
+      "Bash(pnpm check:*)",
+      "Bash(pnpm format:fix:*)",
+      "Bash(pnpm oxfmt:*)"
     ]
   }
 }

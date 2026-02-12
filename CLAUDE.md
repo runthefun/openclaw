@@ -49,6 +49,7 @@ Use `scripts/committer "<msg>" <file...>` for commits instead of manual `git add
 ### Monorepo Structure
 
 Workspaces defined in `pnpm-workspace.yaml`:
+
 - **Root (`.`)** — Core application
 - **`ui/`** — Control UI (Lit web components, Vite build)
 - **`packages/*`** — Workspace packages (clawdbot, moltbot)
