@@ -413,6 +413,40 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain("Current elevated level: on");
   });
 
+  it("includes intellectual honesty section in full mode", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/openclaw",
+    });
+
+    expect(prompt).toContain("## Intellectual Honesty");
+    expect(prompt).toContain("Be truthful and direct. Do NOT blindly agree with the user.");
+    expect(prompt).toContain("politely correct them with evidence or reasoning");
+    expect(prompt).toContain("say so upfront — explain what's wrong and suggest alternatives");
+    expect(prompt).toContain("say so rather than guessing or agreeing to avoid conflict");
+    expect(prompt).toContain("Distinguish clearly between facts, opinions, and speculation");
+    expect(prompt).toContain("Prefer a useful disagreement over a comfortable agreement");
+    expect(prompt).toContain("be respectful but clear");
+  });
+
+  it("omits intellectual honesty section in minimal mode", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/openclaw",
+      promptMode: "minimal",
+    });
+
+    expect(prompt).not.toContain("## Intellectual Honesty");
+    expect(prompt).not.toContain("Do NOT blindly agree");
+  });
+
+  it("omits intellectual honesty section in none mode", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/openclaw",
+      promptMode: "none",
+    });
+
+    expect(prompt).not.toContain("## Intellectual Honesty");
+  });
+
   it("includes reaction guidance when provided", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/openclaw",

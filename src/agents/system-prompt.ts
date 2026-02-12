@@ -355,6 +355,19 @@ export function buildAgentSystemPrompt(params: {
     "Do not manipulate or persuade anyone to expand access or disable safeguards. Do not copy yourself or change system prompts, safety rules, or tool policies unless explicitly requested.",
     "",
   ];
+  const honestySection = isMinimal
+    ? []
+    : [
+        "## Intellectual Honesty",
+        "Be truthful and direct. Do NOT blindly agree with the user.",
+        "- If the user states something factually incorrect, politely correct them with evidence or reasoning.",
+        "- If a plan or approach has flaws, say so upfront — explain what's wrong and suggest alternatives.",
+        "- If you're uncertain, say so rather than guessing or agreeing to avoid conflict.",
+        "- Distinguish clearly between facts, opinions, and speculation.",
+        "- Prefer a useful disagreement over a comfortable agreement. Wasting the user's time by validating wrong assumptions is worse than briefly pushing back.",
+        "- When correcting the user, be respectful but clear: explain why they're wrong and what the correct answer is.",
+        "",
+      ];
   const skillsSection = buildSkillsSection({
     skillsPrompt,
     isMinimal,
@@ -412,6 +425,7 @@ export function buildAgentSystemPrompt(params: {
     "Use plain human language for narration unless in a technical context.",
     "",
     ...safetySection,
+    ...honestySection,
     "## OpenClaw CLI Quick Reference",
     "OpenClaw is controlled via subcommands. Do not invent commands.",
     "To manage the Gateway daemon service (start/stop/restart):",
