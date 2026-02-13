@@ -53,7 +53,7 @@ The server loads config via `loadConfig()`, which respects `OPENCLAW_CONFIG_PATH
 
 | Variable                     | Default     | Purpose                                 |
 | ---------------------------- | ----------- | --------------------------------------- |
-| `SIMPLE_CHAT_PORT`           | `18800`     | Server listen port                      |
+| `SIMPLE_CHAT_PORT`           | `3000`      | Server listen port                      |
 | `SIMPLE_CHAT_HOST`           | `127.0.0.1` | Bind address                            |
 | `SIMPLE_CHAT_JWT_PUBLIC_KEY` | (required)  | PEM public key for JWT verification     |
 | `SIMPLE_CHAT_JWT_ALGORITHM`  | `EdDSA`     | JWT algorithm: `EdDSA` or `RS256`       |
@@ -113,14 +113,14 @@ All messages are flat JSON objects with a `type` field. No envelope framing or p
 
 ### Server to client
 
-| Type         | Fields                       | When                                                                      |
-| ------------ | ---------------------------- | ------------------------------------------------------------------------- |
-| `chat.ack`   | `id`, `runId`                | Immediately after receiving `chat.send`                                   |
-| `chat.model` | `runId`, `provider`, `model` | Model selected for this run                                               |
-| `chat.block` | `runId`, `text`              | Streaming text chunk                                                      |
-| `chat.tool`  | `runId`, `text`              | Tool result                                                               |
-| `chat.final` | `runId`, `text`              | Run complete. `text` is the full reply (or `null` if streamed via blocks) |
-| `chat.error` | `runId` (optional), `error`  | Error message                                                             |
+| Type         | Fields                                                | When                                                                      |
+| ------------ | ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| `chat.ack`   | `id`, `runId`                                         | Immediately after receiving `chat.send`                                   |
+| `chat.model` | `runId`, `provider`, `model`                          | Model selected for this run                                               |
+| `chat.block` | `runId`, `text`                                       | Streaming text chunk                                                      |
+| `chat.agent` | `runId`, `stream`, `seq`, `ts`, `data`, `sessionKey?` | Structured agent event stream (`lifecycle`, `tool`, `assistant`, `error`) |
+| `chat.final` | `runId`, `text`                                       | Run complete. `text` is the full reply (or `null` if streamed via blocks) |
+| `chat.error` | `runId` (optional), `error`                           | Error message                                                             |
 
 ## Writing a WS client
 
@@ -129,7 +129,7 @@ All messages are flat JSON objects with a `type` field. No envelope framing or p
 ```js
 import WebSocket from "ws";
 
-const ws = new WebSocket("ws://127.0.0.1:18800/?token=YOUR_JWT");
+const ws = new WebSocket("ws://127.0.0.1:3000/?token=YOUR_JWT");
 
 ws.on("open", () => {
   ws.send(
@@ -152,8 +152,10 @@ ws.on("message", (raw) => {
     case "chat.block":
       process.stdout.write(msg.text); // streaming chunk
       break;
-    case "chat.tool":
-      console.log("[tool]", msg.text);
+    case "chat.agent":
+      if (msg.stream === "tool") {
+        console.log("[tool-event]", msg.data);
+      }
       break;
     case "chat.model":
       console.log(`Using ${msg.provider}/${msg.model}`);
@@ -173,7 +175,7 @@ ws.on("message", (raw) => {
 ### Browser
 
 ```js
-const ws = new WebSocket("ws://127.0.0.1:18800/?token=YOUR_JWT");
+const ws = new WebSocket("ws://127.0.0.1:3000/?token=YOUR_JWT");
 
 ws.onopen = () => {
   ws.send(
@@ -190,6 +192,10 @@ ws.onmessage = (event) => {
   const msg = JSON.parse(event.data);
   if (msg.type === "chat.block") {
     document.getElementById("output").textContent += msg.text;
+  } else if (msg.type === "chat.agent") {
+    if (msg.stream === "tool") {
+      console.log("tool event", msg.data);
+    }
   } else if (msg.type === "chat.final") {
     // reply complete
   } else if (msg.type === "chat.error") {
@@ -217,7 +223,7 @@ import json
 import websocket
 
 ws = websocket.create_connection(
-    "ws://127.0.0.1:18800/?token=YOUR_JWT"
+    "ws://127.0.0.1:3000/?token=YOUR_JWT"
 )
 ws.send(json.dumps({
     "type": "chat.send",
@@ -249,7 +255,7 @@ Build and run with Docker:
 docker build -f src/simple-chat/Dockerfile -t simple-chat .
 
 docker run --rm \
-  -p 18800:18800 \
+  -p 3000:3000 \
   -v ~/.openclaw:/home/node/.openclaw \
   -e SIMPLE_CHAT_JWT_PUBLIC_KEY="$(cat key.pub)" \
   -e OPENROUTER_API_KEY="sk-or-..." \
@@ -331,7 +337,7 @@ the agent's personality and capabilities:
 
 ```bash
 docker run --rm \
-  -p 18800:18800 \
+  -p 3000:3000 \
   -v ~/.openclaw:/home/node/.openclaw \
   -v /path/to/my-templates:/app/docs/reference/templates \
   -v /path/to/my-skills:/app/skills \

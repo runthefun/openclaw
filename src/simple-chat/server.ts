@@ -11,13 +11,15 @@ import {
   injectTimestamp,
   timestampOptsFromConfig,
 } from "../gateway/server-methods/agent-timestamp.js";
+import { onAgentEvent, type AgentEventPayload } from "../infra/agent-events.js";
+import { loadOpenClawPlugins } from "../plugins/loader.js";
 import { type JwtVerifyOptions, verifyJwt } from "./jwt.js";
 
 // ---------------------------------------------------------------------------
 // Environment
 // ---------------------------------------------------------------------------
 
-const PORT = Number(process.env.SIMPLE_CHAT_PORT ?? 18800);
+const PORT = Number(process.env.SIMPLE_CHAT_PORT ?? 3000);
 const HOST = process.env.SIMPLE_CHAT_HOST ?? "127.0.0.1";
 const HEARTBEAT_INTERVAL_MS = parseDurationMs(
   process.env.SIMPLE_CHAT_HEARTBEAT_INTERVAL_MS,
@@ -101,6 +103,20 @@ wss.on(
   "connection",
   (ws: WebSocket, _req: http.IncomingMessage, jwtPayload: Record<string, unknown>) => {
     const activeRuns = new Map<string, ActiveRun>();
+    const unsubscribeAgentEvents = onAgentEvent((evt: AgentEventPayload) => {
+      if (!activeRuns.has(evt.runId)) {
+        return;
+      }
+      sendJson(ws, {
+        type: "chat.agent",
+        runId: evt.runId,
+        stream: evt.stream,
+        seq: evt.seq,
+        ts: evt.ts,
+        data: evt.data,
+        sessionKey: evt.sessionKey,
+      });
+    });
     let waitingForPong = false;
     let pongDeadline = 0;
 
@@ -149,6 +165,7 @@ wss.on(
     });
 
     ws.on("close", () => {
+      unsubscribeAgentEvents();
       clearInterval(heartbeatTimer);
       for (const run of activeRuns.values()) {
         run.controller.abort();
@@ -176,6 +193,9 @@ async function handleChatSend(
 
   try {
     const cfg = loadConfig();
+    // Ensure plugin-backed capabilities (tools/hooks/providers) are registered for this runtime.
+    // Note: loadConfig() may validate against plugins, but does not necessarily register them.
+    loadOpenClawPlugins({ config: cfg });
 
     // Parse attachments
     let parsedMessage = msg.message;
@@ -225,11 +245,6 @@ async function handleChatSend(
             sendJson(ws, { type: "chat.block", runId, text: p.text });
           }
         },
-        onToolResult: (p) => {
-          if (p.text) {
-            sendJson(ws, { type: "chat.tool", runId, text: p.text });
-          }
-        },
         onModelSelected: (c) => {
           sendJson(ws, { type: "chat.model", runId, provider: c.provider, model: c.model });
         },
@@ -253,7 +268,6 @@ function handleChatAbort(msg: ChatAbortMessage, activeRuns: Map<string, ActiveRu
   const run = activeRuns.get(msg.runId);
   if (run) {
     run.controller.abort();
-    activeRuns.delete(msg.runId);
   }
 }
 

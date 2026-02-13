@@ -21,19 +21,21 @@ FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-COPY --from=build /app/dist/simple-chat ./dist/simple-chat
+COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./
 COPY --from=build /app/docs/reference/templates ./docs/reference/templates
 COPY --from=build /app/skills ./skills
+COPY --from=build /app/extensions ./extensions
 
 RUN chown -R node:node /app
 USER node
 
 ENV NODE_ENV=production
 ENV SIMPLE_CHAT_HOST=0.0.0.0
-ENV SIMPLE_CHAT_PORT=18800
+ENV SIMPLE_CHAT_PORT=3000
+ENV OPENCLAW_BUNDLED_PLUGINS_DIR=/app/extensions
 
-EXPOSE 18800
+EXPOSE 3000
 
 CMD ["node", "dist/simple-chat/server.js"]
