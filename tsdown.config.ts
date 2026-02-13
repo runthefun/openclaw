@@ -42,4 +42,11 @@ export default defineConfig([
     fixedExtension: false,
     platform: "node",
   },
+  {
+    entry: "src/simple-chat/server.ts",
+    outDir: "dist/simple-chat",
+    env,
+    fixedExtension: false,
+    platform: "node",
+  },
 ]);
