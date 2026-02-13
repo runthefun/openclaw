@@ -102,21 +102,7 @@ function formatGatewayAuthFailureMessage(params: {
     case "token_mismatch":
       return `unauthorized: gateway token mismatch (${tokenHint})`;
     case "token_missing_config":
-      return "unauthorized: gateway token/JWT key not configured on gateway (set gateway.auth.token or OPENCLAW_GATEWAY_JWT_PUBLIC_KEY)";
-    case "jwt_invalid_format":
-    case "jwt_header_invalid":
-    case "jwt_payload_invalid":
-    case "jwt_signature_invalid":
-    case "jwt_exp_invalid":
-    case "jwt_expired":
-    case "jwt_iat_invalid":
-    case "jwt_issuer_mismatch":
-    case "jwt_audience_mismatch":
-    case "jwt_email_missing":
-    case "jwt_claims_invalid":
-      return `unauthorized: gateway JWT invalid or expired (${tokenHint})`;
-    case "jwt_public_key_invalid":
-      return "unauthorized: gateway JWT public key is invalid (set OPENCLAW_GATEWAY_JWT_PUBLIC_KEY)";
+      return "unauthorized: gateway token not configured on gateway (set gateway.auth.token)";
     case "password_missing":
       return `unauthorized: gateway password missing (${passwordHint})`;
     case "password_mismatch":
@@ -443,9 +429,7 @@ export function attachGatewayWsMessageHandler(params: {
           : null;
         const sharedAuthOk =
           sharedAuthResult?.ok === true &&
-          (sharedAuthResult.method === "token" ||
-            sharedAuthResult.method === "password" ||
-            sharedAuthResult.method === "jwt-token");
+          (sharedAuthResult.method === "token" || sharedAuthResult.method === "password");
         const rejectUnauthorized = () => {
           setHandshakeState("failed");
           logWsControl.warn(
