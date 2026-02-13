@@ -21,14 +21,12 @@ FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package.json ./
-COPY --from=build /app/docs/reference/templates ./docs/reference/templates
-COPY --from=build /app/skills ./skills
-COPY --from=build /app/extensions ./extensions
-
-RUN chown -R node:node /app
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/package.json ./
+COPY --from=build --chown=node:node /app/docs/reference/templates ./docs/reference/templates
+COPY --from=build --chown=node:node /app/skills ./skills
+COPY --from=build --chown=node:node /app/extensions ./extensions
 USER node
 
 ENV NODE_ENV=production
